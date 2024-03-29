@@ -5,7 +5,7 @@ import org.scaler.productservices.Modals.Product;
 import org.springframework.stereotype.Service;
 
 @Service
-public class FakeStoreProductImpl implements ProductService{
+public class FakeStoreProductServiceImpl implements ProductService{
     @Override
     public Product getProductById(Long userId) {
         return null;
