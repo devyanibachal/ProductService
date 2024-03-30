@@ -4,6 +4,7 @@ import org.scaler.productservices.DTO.FakeStoreProductDTO;
 import org.scaler.productservices.Modals.Category;
 import org.scaler.productservices.Modals.Product;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.RequestCallback;
@@ -24,31 +25,36 @@ public class FakeStoreProductServiceImpl implements ProductService{
 
     @Override
     public Product getProductById(Long userId) {
-        FakeStoreProductDTO response = restTemplate.getForObject
+        FakeStoreProductDTO fakeStoreProductDTO = restTemplate.getForObject
                 ("https://fakestoreapi.com/products/" + userId , FakeStoreProductDTO.class);
-        return setProductObject(response);
+        if(fakeStoreProductDTO == null) return null;
+        return setProductObject(fakeStoreProductDTO);
     }
 
 
     @Override
     public List<Product> getAllProducts() {
-        FakeStoreProductDTO[] response = restTemplate.getForObject
+        FakeStoreProductDTO[] fakeStoreProductDTO = restTemplate.getForObject
                 ("https://fakestoreapi.com/products" , FakeStoreProductDTO[].class);
-        assert response != null;
+        if(fakeStoreProductDTO == null) return null;
         List<Product> result = new ArrayList<>();
-        for( FakeStoreProductDTO obj : response)
+        for( FakeStoreProductDTO obj : fakeStoreProductDTO)
             result.add(setProductObject(obj));
         return result ;
     }
 
     @Override
     public Product createProduct(FakeStoreProductDTO product) {
-        return null;
+        ResponseEntity<FakeStoreProductDTO> fakeStoreProductDTO = restTemplate.postForEntity("https://fakestoreapi.com/products" , product, FakeStoreProductDTO.class);
+        if(fakeStoreProductDTO == null) return null;
+        return setProductObject(fakeStoreProductDTO.getBody());
     }
 
     @Override
     public Product updateProduct(Long userId, FakeStoreProductDTO product) {
-        return null;
+        FakeStoreProductDTO fakeStoreProductDTO = restTemplate.patchForObject("https://fakestoreapi.com/products/"+userId, product, FakeStoreProductDTO.class);
+        if(fakeStoreProductDTO == null) return null;
+        return setProductObject(fakeStoreProductDTO);
     }
 
     @Override
@@ -57,14 +63,21 @@ public class FakeStoreProductServiceImpl implements ProductService{
         HttpMessageConverterExtractor<FakeStoreProductDTO> responseExtractor =
                 new HttpMessageConverterExtractor(FakeStoreProductDTO.class, restTemplate.getMessageConverters());
         FakeStoreProductDTO fakeStoreProductDTO = restTemplate.
-                execute("https://fakestoreapi.com/products", HttpMethod.POST, requestCallback, responseExtractor);
-        assert fakeStoreProductDTO != null;
+                execute("https://fakestoreapi.com/products", HttpMethod.PUT, requestCallback, responseExtractor);
+        if(fakeStoreProductDTO == null) return null;
         return setProductObject(fakeStoreProductDTO);
     }
 
     @Override
-    public Product deleteProduct(Long UserId) {
-        return null;
+    public Product deleteProduct(Long userId) {
+//        restTemplate.delete("https://fakestoreapi.com/products/" + userId);
+//        return null;
+        RequestCallback requestCallback = restTemplate.httpEntityCallback(userId, FakeStoreProductDTO.class);
+        HttpMessageConverterExtractor<FakeStoreProductDTO> responseExtractor = new HttpMessageConverterExtractor(FakeStoreProductDTO.class, restTemplate.getMessageConverters());
+        FakeStoreProductDTO fakeStoreProductDTO = restTemplate.
+                execute("https://fakestoreapi.com/products", HttpMethod.DELETE, requestCallback, responseExtractor);
+        if(fakeStoreProductDTO == null) return null;
+        return setProductObject(fakeStoreProductDTO);
     }
 
     private Product setProductObject(FakeStoreProductDTO object) {
